@@ -1,0 +1,28 @@
+{
+  "name": "capy-retouching",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Capy Retouching - editor fotogr\u00e1fico n\u00e3o destrutivo em navegador, React + TypeScript + Canvas.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "lint:types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --skipLibCheck"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "latest",
+    "postcss": "latest",
+    "autoprefixer": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}
