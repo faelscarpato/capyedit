@@ -27,7 +27,6 @@
   --shadow:   0 20px 48px rgba(0,0,0,.40);
   --shadow-sm: 0 4px 16px rgba(0,0,0,.30);
 
-  /* Renderização: faixa da barra de progresso */
   --render-progress: 0%;
 }
 
@@ -115,7 +114,6 @@ button.is-active {
   z-index: 10;
 }
 
-/* Barra de progresso de renderização (pseudo-elemento no topbar) */
 .topbar::after {
   content: '';
   position: absolute;
@@ -189,6 +187,38 @@ button.is-active {
   transform: scale(.96);
 }
 
+/* ─── BADGE DE PIPELINE ──────────────────────────────────────────────── */
+.pipeline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  border: 1px solid var(--line-soft);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+  cursor: default;
+  transition: color .2s, border-color .2s, background .2s;
+  white-space: nowrap;
+}
+.pipeline-badge--webgl {
+  color: var(--mint);
+  border-color: rgba(85,227,179,.30);
+  background: rgba(85,227,179,.08);
+}
+.pipeline-badge--worker {
+  color: var(--gold);
+  border-color: rgba(245,200,66,.30);
+  background: rgba(245,200,66,.08);
+}
+.pipeline-badge--cpu {
+  color: var(--muted);
+  border-color: var(--line-soft);
+}
+
 /* ─── WORKSPACE ──────────────────────────────────────────────────────── */
 .workspace {
   min-height: 0;
@@ -221,20 +251,38 @@ button.is-active {
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.004));
 }
-.stage-hints { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
-.stage-hints span {
-  padding: 5px 9px;
+
+/* Lista de atalhos de teclado — componente KeyboardShortcutsHint */
+.stage-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.stage-hints li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
   border: 1px solid var(--line-soft);
   border-radius: 999px;
   background: rgba(255,255,255,.022);
-  font-size: 11px; color: var(--muted);
-  letter-spacing: .02em;
+  font-size: 11px;
+  color: var(--muted);
 }
 .stage-hints kbd {
   font-family: inherit;
   color: var(--gold);
   font-size: 11px;
   font-weight: 700;
+  font-style: normal;
+}
+.stage-hints span {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 /* ─── HISTOGRAMA ─────────────────────────────────────────────────────── */
@@ -247,12 +295,35 @@ button.is-active {
 }
 
 /* ─── CANVAS ─────────────────────────────────────────────────────────── */
+/*
+  Padrão xadrez via CSS — elimina o drawChecker() por frame no canvas JS.
+  O canvas fica transparente e o fundo é renderizado pelo wrapper.
+*/
 .canvas-wrap {
-  position: relative; min-height: 0;
-  overflow: hidden; touch-action: none;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  background-color: #07090d;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,.018) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255,255,255,.018) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,.03) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.03) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 .main-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
 .main-canvas:active { cursor: grabbing; }
+
+/* Badge de pipeline sobre o canvas */
+.canvas-wrap > .pipeline-badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 2;
+  pointer-events: none;
+}
 
 .canvas-tools {
   position: absolute; left: 50%; bottom: 14px;
@@ -289,11 +360,11 @@ button.is-active {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--mint);
-  animation: pulse-dot .9s ease-in-out infinite;
+  animation: pulse-dot-anim .9s ease-in-out infinite;
 }
-@keyframes pulse-dot {
+@keyframes pulse-dot-anim {
   0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .4; transform: scale(.7); }
+  50%      { opacity: .4; transform: scale(.7); }
 }
 
 /* ─── PAINEL ESQUERDO ────────────────────────────────────────────────── */
@@ -309,7 +380,7 @@ button.is-active {
 .section-title span { font-weight: 800; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .section-title small, .muted-copy { color: var(--faint); font-size: 11.5px; line-height: 1.5; }
 
-/* Presets com novo visual de cartão */
+/* Presets */
 .preset-list { display: grid; gap: 6px; }
 .preset-list button {
   display: grid;
@@ -331,8 +402,10 @@ button.is-active {
 }
 .preset-list button:hover::before { opacity: 1; }
 .preset-list button strong { font-size: 13px; font-weight: 700; }
-.preset-list button span { color: var(--muted); font-size: 11.5px; line-height: 1.4;}
-
+.preset-list button span {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
   margin-top: 2px;
 }
 
@@ -428,7 +501,6 @@ button.is-active {
   text-align: right;
   font-weight: 600;
 }
-/* Valor modificado fica em dourado */
 .slider-meta output.is-modified { color: var(--gold); }
 
 input[type="range"] {
@@ -513,7 +585,6 @@ input[type="range"]::-moz-range-thumb {
 }
 .hsl-grid details[open] summary::after { transform: rotate(90deg); }
 
-/* Ponto de cor da banda HSL */
 .hsl-dot {
   width: 9px; height: 9px;
   border-radius: 50%;
@@ -521,7 +592,7 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 0 1.5px rgba(255,255,255,.15);
 }
 
-/* ─── BUTTON GRID (máscaras, crop) ───────────────────────────────────── */
+/* ─── BUTTON GRID ────────────────────────────────────────────────────── */
 .button-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
@@ -583,7 +654,23 @@ select:hover { border-color: rgba(245,200,66,.40); }
 .footerbar .sep { color: var(--line); user-select: none; }
 .warning-text { color: var(--warn); }
 .error-text   { color: var(--danger); }
-.pulse-dot    { color: var(--mint); }
+
+/* Indicador de renderização no footer */
+.pulse-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mint);
+}
+.pulse-dot__indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+  flex-shrink: 0;
+  animation: pulse-dot-anim .9s ease-in-out infinite;
+}
 
 /* ─── TOAST / NOTIFICAÇÕES ───────────────────────────────────────────── */
 .toast-container {
@@ -637,8 +724,9 @@ select:hover { border-color: rgba(245,200,66,.40); }
   .top-actions { overflow-x: auto; max-width: 62vw; }
   .top-actions .divider { display: none; }
   .top-actions button { min-width: 68px; min-height: 36px; }
-  /* Esconde Undo/Redo/Antes em telas pequenas, mantém Import + Export */
   .top-actions button:not(.primary-action):not(.export-button):nth-of-type(n+4) { display: none; }
+  /* Esconde badge de pipeline em telas pequenas */
+  .pipeline-badge { display: none; }
 
   .workspace {
     position: relative;
@@ -649,7 +737,6 @@ select:hover { border-color: rgba(245,200,66,.40); }
   .stage { grid-template-rows: 0 1fr; }
   .stage-head { display: none; }
 
-  /* Painel direito sobreposto como sheet bottom */
   .right-panel {
     position: absolute; z-index: 5;
     left: 0; right: 0; bottom: 0;
@@ -660,7 +747,6 @@ select:hover { border-color: rgba(245,200,66,.40); }
     box-shadow: 0 -24px 60px rgba(0,0,0,.50);
     background: rgba(15,18,25,.97);
   }
-  /* Handle de drag no topo do sheet */
   .right-panel::before {
     content: '';
     display: block;
@@ -674,7 +760,7 @@ select:hover { border-color: rgba(245,200,66,.40); }
   .panel-section { padding: 10px 14px; }
   .panel-scroll { padding-bottom: 0; }
   .canvas-tools { bottom: calc(min(48vh, 450px) + 12px); }
-  .footerbar { font-size:     11px; }
+  .footerbar { font-size: 11px; }
   .footerbar span:nth-child(n+3) { display: none; }
   .slider-row { margin: 12px 0; }
   input[type="range"] { min-height: 34px; }
