@@ -2,11 +2,26 @@ import { exportEditedImage, downloadBlob, exportFileName } from '../../core/expo
 import { useEditorStore } from '../../store/editorStore';
 import { ImportDropzone } from './ImportDropzone';
 
+type Pipeline = 'webgl' | 'worker' | 'cpu';
+
 type Props = {
-  onSaveProject: () => void;
+  onSaveProject:   () => void;
+  activePipeline?: Pipeline | null;
 };
 
-export function TopBar({ onSaveProject }: Props) {
+const PIPELINE_LABEL: Record<Pipeline, string> = {
+  webgl:  '⚡ GPU',
+  worker: '🧵 Worker',
+  cpu:    '🖥 CPU',
+};
+
+const PIPELINE_TITLE: Record<Pipeline, string> = {
+  webgl:  'Renderização via WebGL2 (GPU)',
+  worker: 'Renderização via Web Worker (thread separada)',
+  cpu:    'Renderização via CPU (thread principal)',
+};
+
+export function TopBar({ onSaveProject, activePipeline }: Props) {
   const { image, edit, past, future, showBefore, exportOptions, isRendering, dispatch } = useEditorStore();
   const canExport = Boolean(image);
 
@@ -32,6 +47,7 @@ export function TopBar({ onSaveProject }: Props) {
           <small>non destructive browser lab</small>
         </div>
       </div>
+
       <nav className="menu-strip" aria-label="Menu principal">
         <button>Arquivo</button>
         <button>Edição</button>
@@ -40,13 +56,58 @@ export function TopBar({ onSaveProject }: Props) {
         <button>Ajuda</button>
         <button>Sobre</button>
       </nav>
+
       <div className="top-actions">
+        {/* Badge de pipeline — exibido apenas quando uma imagem está carregada */}
+        {activePipeline && (
+          <span
+            className={`pipeline-badge pipeline-badge--${activePipeline}`}
+            title={PIPELINE_TITLE[activePipeline]}
+            aria-label={PIPELINE_TITLE[activePipeline]}
+          >
+            {PIPELINE_LABEL[activePipeline]}
+          </span>
+        )}
+
         <ImportDropzone />
-        <button type="button" onClick={() => dispatch({ type: 'undo' })} disabled={!past.length}>Undo</button>
-        <button type="button" onClick={() => dispatch({ type: 'redo' })} disabled={!future.length}>Redo</button>
-        <button type="button" onClick={() => dispatch({ type: 'toggle-before' })} disabled={!image} className={showBefore ? 'is-active' : ''}>Antes</button>
-        <button type="button" onClick={onSaveProject} disabled={!image}>Salvar JSON</button>
-        <button className="export-button" type="button" disabled={!canExport || isRendering} onClick={() => void exportNow()}>
+
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'undo' })}
+          disabled={!past.length}
+          aria-label="Desfazer (Ctrl+Z)"
+        >Undo</button>
+
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'redo' })}
+          disabled={!future.length}
+          aria-label="Refazer (Ctrl+Y)"
+        >Redo</button>
+
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'toggle-before' })}
+          disabled={!image}
+          className={showBefore ? 'is-active' : ''}
+          aria-pressed={showBefore}
+          aria-label="Alternar antes/depois (B)"
+        >Antes</button>
+
+        <button
+          type="button"
+          onClick={onSaveProject}
+          disabled={!image}
+          aria-label="Salvar projeto como JSON"
+        >Salvar JSON</button>
+
+        <button
+          className="export-button"
+          type="button"
+          disabled={!canExport || isRendering}
+          onClick={() => void exportNow()}
+          aria-label="Exportar imagem"
+        >
           {isRendering ? 'Processando…' : 'Exportar'}
         </button>
       </div>

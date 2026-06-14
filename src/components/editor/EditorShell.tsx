@@ -8,12 +8,16 @@ import { LeftPanel } from '../panels/LeftPanel';
 import { RightPanel } from '../panels/RightPanel';
 import { ImageCanvas } from '../canvas/ImageCanvas';
 import { HistogramCanvas } from '../canvas/HistogramCanvas';
+import { KeyboardShortcutsHint } from './KeyboardShortcutsHint';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+
+type Pipeline = 'webgl' | 'worker' | 'cpu';
 
 export function EditorShell() {
   const { image, edit, dispatch } = useEditorStore();
   const [histogram, setHistogram] = useState<Histogram | null>(null);
   const [fitHandler, setFitHandler] = useState<(() => void) | undefined>();
+  const [activePipeline, setActivePipeline] = useState<Pipeline | null>(null);
   useKeyboardShortcuts(fitHandler);
 
   const registerFit = useCallback((fit: () => void) => {
@@ -22,17 +26,12 @@ export function EditorShell() {
 
   const saveProjectJson = async () => {
     if (!image) return;
-    const project = {
-      id: image.id,
-      name: image.fileName,
-      edit,
-      updatedAt: Date.now()
-    };
+    const project = { id: image.id, name: image.fileName, edit, updatedAt: Date.now() };
     try {
       await saveProject(project);
       const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
       a.href = url;
       a.download = `${image.fileName.replace(/\.[^.]+$/, '')}.capy-retouching.json`;
       a.click();
@@ -44,19 +43,19 @@ export function EditorShell() {
 
   return (
     <div className="editor-shell">
-      <TopBar onSaveProject={() => void saveProjectJson()} />
+      <TopBar onSaveProject={() => void saveProjectJson()} activePipeline={activePipeline} />
       <main className="workspace">
         <LeftPanel />
         <section className="stage">
           <div className="stage-head">
             <HistogramCanvas histogram={histogram} />
-            <div className="stage-hints">
-              <span>B: antes/depois</span>
-              <span>Ctrl+Z/Y: histórico</span>
-              <span>Scroll: zoom · arrastar: pan</span>
-            </div>
+            <KeyboardShortcutsHint />
           </div>
-          <ImageCanvas onHistogram={setHistogram} registerFit={registerFit} />
+          <ImageCanvas
+            onHistogram={setHistogram}
+            registerFit={registerFit}
+            onPipeline={setActivePipeline}
+          />
         </section>
         <RightPanel />
       </main>
